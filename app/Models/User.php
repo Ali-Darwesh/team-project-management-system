@@ -47,14 +47,14 @@ class User extends Authenticatable implements JWTSubject
     ];
     public function projects()
     {
-        return $this->belongsToMany(Project::class)
-            ->withPivot('role', 'contribution_hours', 'last_activity')
-            ->withTimestamps();
+        return $this->belongsToMany(Project::class)->withPivot('role', 'contribution_hours', 'last_activity')->withTimestamps();
     }
+
     public function tasks()
     {
-        return $this->hasManyThrough(Task::class, Project::class);
+        return $this->hasMany(Task::class);
     }
+
 
 
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthService
@@ -19,7 +20,14 @@ class AuthService
     public function createUser(array $data)
     {
         try {
-            $user = User::create($data);
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+
+            ]);
+            // $user->password = $data['password'];
+            // $user->save();
             $token = Auth::login($user);
             return [
                 'message' => 'user created successfully',

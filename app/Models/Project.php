@@ -15,12 +15,11 @@ class Project extends Model
     ];
     public function users()
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot('role', 'contribution_hours', 'last_activity')
-            ->withTimestamps();
+        return $this->belongsToMany(User::class)->withPivot('role', 'contribution_hours', 'last_activity')->withTimestamps();
     }
+
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasManyThrough(Task::class, ProjectUser::class, 'project_id', 'user_id', 'id', 'user_id');
     }
 }

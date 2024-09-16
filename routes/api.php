@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -30,10 +32,14 @@ Route::group([
 //=====  Projects =====
 //=====================
 
+Route::post('/projects', [ProjectController::class, 'store']);
+Route::post('/add_users_to_project/{projectId}', [ProjectController::class, 'addUsersToProject']);
+Route::get('/get_project_tasks/{projectId}', [UserController::class, 'getProjectTasks']);
 
 
 //=====================
 //=====   Tasks   =====
 //=====================
+Route::post('/tasks', [TaskController::class, 'store']);
 Route::post('/tasks/{taskId}/start', [TaskController::class, 'startTask']);
-Route::post('/tasks/{taskId}/end', [TaskController::class, 'endTask']);
+Route::post('users/{userId}/tasks/{taskId}/end', [TaskController::class, 'endTask']);

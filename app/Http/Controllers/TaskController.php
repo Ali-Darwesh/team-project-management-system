@@ -2,13 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskDscriptionByManagerRequest;
+use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
 use App\Models\User;
+use App\Services\TaskService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    /**
+     * Constracor to inject task Service
+     * @param TaskService $taskService
+     */
+    protected $taskService;
+    public function __construct(TaskService $taskService)
+    {
+        $this->taskService = $taskService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -20,9 +33,15 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request)
     {
-        //
+        $validatedData = $request->validated();
+        $task = $this->taskService->createTask($validatedData);
+        if (isset($task['error'])) {
+            return response(['error' => $task['error'], 'message' => $task['message']], $task['status']);
+        } else {
+            return response(['status' => $task['status'], 'message' => $task['message'], 'task' => $task['task']], $task['status']);
+        }
     }
 
     /**
@@ -34,11 +53,39 @@ class TaskController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update task description by manager how create it.
+     * @param UpdateTaskDscriptionByManagerRequest $request
+     * @param Task $task
+     * @return \Illuminate\HTTP\JsonResponse
+
      */
-    public function update(Request $request, Task $task)
+    public function updateTaskDscriptionByManager(UpdateTaskDscriptionByManagerRequest $request, Task $task)
     {
-        //
+        $validatedData = $request->validated();
+        $project = $this->taskService->updateTask($task, $validatedData);
+        if (isset($project['error'])) {
+            return response(['error' => $project['error'], 'message' => $project['message']], $project['status']);
+        } else {
+            return response(['status' => $project['status'], 'message' => $project['message'], 'project' => $project['project']], $project['status']);
+        }
+    }
+
+    /**
+     * Update task status by user how do it.
+     * @param UpdateTaskStatusRequest $request
+     * @param Task $task
+     * @return \Illuminate\HTTP\JsonResponse
+
+     */
+    public function updateTaskStatus(UpdateTaskStatusRequest $request, Task $task)
+    {
+        $validatedData = $request->validated();
+        $project = $this->taskService->updateTask($task, $validatedData);
+        if (isset($project['error'])) {
+            return response(['error' => $project['error'], 'message' => $project['message']], $project['status']);
+        } else {
+            return response(['status' => $project['status'], 'message' => $project['message'], 'project' => $project['project']], $project['status']);
+        }
     }
 
     /**
@@ -46,54 +93,36 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        $task = $this->taskService->deleteTask($task);
+        if (isset($task['error'])) {
+            return response(['error' => $task['error'], 'message' => $task['message']], $task['status']);
+        } else {
+            return response(['status' => $task['status'], 'message' => $task['message']], $task['status']);
+        }
     }
 
     //=================
     public function startTask($taskId)
     {
-        $task = Task::findOrFail($taskId);
-
-        // Set the start time for the task
-        $task->start_time = Carbon::now();
-        $task->end_time = null;
-        $task->save();
-
-        return response()->json(['message' => 'Task started successfully', 'start_time' => $task->start_time]);
+        $task = $this->taskService->startTime($taskId);
+        if (isset($task['error'])) {
+            return response(['error' => $task['error'], 'message' => $task['message']], $task['status']);
+        } else {
+            return response(['status' => $task['status'], 'message' => $task['message'], 'task_start_time' => $task['start_time']], $task['status']);
+        }
     }
-    public function endTask($taskId, $userId)
+    public function endTask($userId, $taskId)
     {
-        $task = Task::findOrFail($taskId);
-
-        // Log the end time for the task
-        $task->end_time = Carbon::now();
-        $task->save();
-
-        // Calculate session time in hours
-        $sessionHours = $task->start_time ? $task->start_time->diffInMinutes($task->end_time) / 60 : 0;
-
-        // Find the user and project relationship
-        $user = User::findOrFail($userId);
-        $projectId = $task->project_id;  // Assuming `project_id` exists in the `tasks` table
-
-        // Get the current contribution_hours from the pivot table
-        $currentPivotData = $user->projects()->where('project_id', $projectId)->first()->pivot;
-
-        // Update the contribution_hours and last_active without detaching existing pivot data
-        $user->projects()->syncWithoutDetaching([
-            $projectId => [
-                'contribution_hours' => $currentPivotData->contribution_hours + round($sessionHours, 2),
-                'last_active' => Carbon::now(), // Set last_active to the current timestamp
-            ]
-        ]);
-        $task->start_time = null;
-        $task->save();
-
-        return response()->json([
-            'message' => 'Task ended successfully',
-            'session_hours' => round($sessionHours, 2),
-            'total_active_hours' => $currentPivotData->active_hours + round($sessionHours, 2),
-            'last_active' => Carbon::now(),
-        ]);
+        $task = $this->taskService->endTime($taskId, $userId);
+        if (isset($task['error'])) {
+            return response(['error' => $task['error'], 'message' => $task['message']], $task['status']);
+        } else {
+            return response()->json([
+                'message' => $task['message'],
+                'session_hours' => $task['session_hours'],
+                'userTaskInfo' => $task['userTaskInfo'],
+                'end_time' => $task['end_time'],
+            ], $task['status']);
+        }
     }
 }

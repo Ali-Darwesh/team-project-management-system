@@ -29,7 +29,7 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $safeData = $request->safe();
+        $safeData = $request->validated();
         $user = $this->authService->createUser($safeData);
         if (isset($user['error'])) {
             // If there is an error in the $user array, return an error response

@@ -15,10 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('description');
-            $table->foreignId('project_id')->constrained();
+            $table->foreignId('user_id')->constrained();
             $table->date('due_date');
-            $table->enum('status', ['new', 'in_progress', 'completed']);
-            $table->enum('priority', ['low', 'medium', 'high'])->default('low');
+            $table->enum('status', ['new', 'in_progress', 'completed'])->default('new');
+            $table->enum('priority', ['low', 'medium', 'high']);
+            $table->string('notes')->nullable();
             $table->timestamp('start_time')->nullable();
             $table->timestamp('end_time')->nullable();
             $table->softDeletes();

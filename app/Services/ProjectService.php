@@ -61,17 +61,11 @@ class ProjectService
             // Find the project by ID
             $project = Project::findOrFail($projectId);
 
-            // Prepare user-role data for attaching to the pivot table
-            $usersWithRoles = [];
-            foreach ($validatedData['users'] as $user) {
-                $usersWithRoles[$user['id']] = ['role' => $user['role']];
-            }
-
             // Attach the users with their roles to the project
-            $project_users = $project->users()->attach($usersWithRoles);
-            return ['message' => 'Project deleted successfully', 'project_users' => $project_users, 'status' => 200];
+            $project_users = $project->users()->attach([$validatedData['user_id'] => ['role' => $validatedData['role']]]);
+            return ['message' => 'user added successfully', 'project_users' => $project_users, 'status' => 200];
         } catch (Exception $e) {
-            return ['message' => 'Delete project failed', 'error' => $e, 'status' => 404];
+            return ['message' => 'adding user failed', 'error' => $e, 'status' => 404];
         }
     }
 }

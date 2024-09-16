@@ -5,9 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Hash;
 
-class RegisterRequest extends FormRequest
+class StoreTaskRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +24,14 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|max:255|email|unique:users,email',
-            'password' => 'required|string|min:8|max:255',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'due_date' => 'required|date|after_or_equal:today ',
+            'user_id' => 'required|integer|exists:users,id',
+            'priority' => 'required|in:low,medium,high',
+            // 'status' => 'nullable|in:new,in_progress,completed',
+            // 'start_time' => 'required|date|before:end_time',
+            // 'end_time' => 'required|date|after:start_time'
         ];
     }
     /**
@@ -44,4 +48,11 @@ class RegisterRequest extends FormRequest
             'errors' => $validator->errors(),
         ]));
     }
+    // public function messages()
+    // {
+    //     return [
+    //         'start_time.before' => 'The start time must be before the end time.',
+    //         'end_time.after' => 'The end time must be after the start time.',
+    //     ];
+    // }
 }

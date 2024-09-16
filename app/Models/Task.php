@@ -12,36 +12,24 @@ class Task extends Model
     protected $fillable = [
         'title',
         'description',
+        'user_id',
         'status',
         'priority',
         'due_date',
     ];
 
-
-
-
-
-
-    //==================================
-    //==================================
-    //=========MAKE TASK CRUD===========
-    //==================================
-    //==================================
-
-
-
-
-
-
-
-
     protected $guarded = [
         'start_time',
         'end_time'
     ];
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
 
-    public function project()
+
+    public function user()
     {
-        return $this->belongsTo(Project::class);
+        return $this->belongsTo(User::class);
     }
 }

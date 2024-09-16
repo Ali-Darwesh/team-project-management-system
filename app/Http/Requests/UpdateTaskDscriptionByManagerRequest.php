@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class AddUsersToProjectRequest extends FormRequest
+class UpdateTaskDscriptionByManagerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,19 @@ class AddUsersToProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',   // Ensure user exists
-            'role' => 'required|string|max:255|in:manager,developer,tester'
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:255',
+            'due_date' => 'nullable|date|after_or_equal:today ',
+            'user_id' => 'required|integer|exists:users,id',
+            'priority' => 'nullable|in:low,medium,high',
         ];
     }
+    /**
+     * The failedValidation method is used to customize the response that is returned when form validation fails 
+     * @param Validator $validator
+     * it throws an HttpResponseException
+     * @return \Illuminate\HTTP\JsonResponse
+     */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Project;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -17,6 +19,21 @@ class UserController extends Controller
     public function __construct(UserService $userService)
     {
         $this->userService = $userService;
+    }
+
+    public function getProjectTasks($projectId)
+    {
+        // $user = Auth::user();
+        $userId = 2; // Assume this is the user ID you're interested in
+        $user = User::find($userId);
+        $project = Project::find($projectId);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $tasks = $project->tasks;
+        return response()->json($tasks, 200);
     }
     /**
      * Update user data in storage.
