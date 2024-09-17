@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
-            $table->softDeletes();
+
             $table->timestamps();
         });
     }
@@ -26,8 +26,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('projects');
-        Schema::table('projects', function (Blueprint $table) {
-            $table->dropSoftDeletes(); // Removes the `deleted_at` column
-        });
     }
 };

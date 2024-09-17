@@ -21,7 +21,7 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function getProjectTasks($projectId)
+    public function getProjectTasks(Request $request, $projectId)
     {
         // $user = Auth::user();
         $userId = 2; // Assume this is the user ID you're interested in
@@ -31,8 +31,13 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
-
-        $tasks = $project->tasks;
+        if ($request->has('latest')) {
+            $tasks = $project->latestTask;
+        } elseif ($request->has('old')) {
+            $tasks = $project->oldestTask;
+        } else {
+            $tasks = $project->tasks;
+        }
         return response()->json($tasks, 200);
     }
     /**
@@ -60,6 +65,15 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        $user = Auth::user();
+
+        // Ensure that there is an authenticated user
+        if (!$user || !$user->is_admin) {
+            abort(response()->json([
+                'error' => 'You are not authorized to perform this action.',
+            ], 403));
+        }
+
         $user = $this->userService->deleteUser($user);
         if (isset($user['error'])) {
             return response(['error' => $user['error'], 'message' => $user['message']], $user['status']);

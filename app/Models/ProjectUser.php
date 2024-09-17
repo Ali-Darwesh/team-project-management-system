@@ -10,4 +10,7 @@ class ProjectUser extends Pivot
 {
     use HasFactory;
     protected $table = 'project_user';
+    protected $guarded = [
+        'start_time',
+    ];
 }

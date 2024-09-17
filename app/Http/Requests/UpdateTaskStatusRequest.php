@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Project;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateTaskStatusRequest extends FormRequest
 {
@@ -13,6 +15,26 @@ class UpdateTaskStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $user = Auth::user();
+        $task = $this->route('task');
+
+        $project = Project::findOrFail($task->project_id);
+        $userProjectRelation = $project->users()->where('user_id', $user->id)->first()?->pivot->role;
+
+        if (!$user->is_admin && !$userProjectRelation) {
+            abort(response()->json([
+                'message' => 'User is not associated with this project.',
+            ], 404));
+        }
+        // Check if the user is a manager for this project
+        $isManager = $userProjectRelation === 'developer';
+        // Ensure that there is an authenticated user
+        if (!$user || (!$user->is_admin && !$isManager)) {
+            abort(response()->json([
+                'error' => 'You are not authorized to perform this action.',
+            ], 403));
+        }
+
         return true;
     }
 

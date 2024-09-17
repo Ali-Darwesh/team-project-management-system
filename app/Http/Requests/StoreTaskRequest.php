@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Project;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Auth;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -13,6 +15,25 @@ class StoreTaskRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // Get the authenticated user
+        $user = Auth::user();
+        $project = Project::findOrFail($this->input('project_id'));
+        // Check if the user is associated with the project
+        $userProjectRelation = $project->users()->where('user_id', $user->id)->first()?->pivot->role;
+
+        if (!$user->is_admin && !$userProjectRelation) {
+            abort(response()->json([
+                'message' => 'User is not associated with this project.',
+            ], 404));
+        }
+        // Check if the user is a manager for this project
+        $isManager = $userProjectRelation === 'manager';
+        // Ensure that there is an authenticated user
+        if (!$user || (!$user->is_admin && !$isManager)) {
+            abort(response()->json([
+                'error' => 'You are not authorized to perform this action.',
+            ], 403));
+        }
         return true;
     }
 
@@ -27,11 +48,9 @@ class StoreTaskRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:255',
             'due_date' => 'required|date|after_or_equal:today ',
-            'user_id' => 'required|integer|exists:users,id',
+            'project_id' => 'required|integer|exists:projects,id',
             'priority' => 'required|in:low,medium,high',
             // 'status' => 'nullable|in:new,in_progress,completed',
-            // 'start_time' => 'required|date|before:end_time',
-            // 'end_time' => 'required|date|after:start_time'
         ];
     }
     /**
@@ -48,11 +67,4 @@ class StoreTaskRequest extends FormRequest
             'errors' => $validator->errors(),
         ]));
     }
-    // public function messages()
-    // {
-    //     return [
-    //         'start_time.before' => 'The start time must be before the end time.',
-    //         'end_time.after' => 'The end time must be after the start time.',
-    //     ];
-    // }
 }

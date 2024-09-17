@@ -15,14 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('description');
-            $table->foreignId('user_id')->constrained();
+            $table->foreignId('project_id')->constrained();
             $table->date('due_date');
             $table->enum('status', ['new', 'in_progress', 'completed'])->default('new');
             $table->enum('priority', ['low', 'medium', 'high']);
+            $table->integer('priority_rank')->nullable();
             $table->string('notes')->nullable();
-            $table->timestamp('start_time')->nullable();
-            $table->timestamp('end_time')->nullable();
-            $table->softDeletes();
+
             $table->timestamps();
         });
     }
@@ -33,8 +32,5 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('tasks');
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->dropSoftDeletes(); // Removes the `deleted_at` column
-        });
     }
 };

@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
     {
         $user = Auth::user();
         // Ensure that there is an authenticated user
-        if (!$user || ($this->user()->id !== $user->id)) {
+        if (!$user || (!$user->is_admin && $this->user()->id !== $user->id)) {
             abort(response()->json([
                 'error' => 'You are not authorized to perform this action.',
             ], 403));

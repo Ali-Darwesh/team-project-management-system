@@ -13,7 +13,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
 
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -47,13 +47,20 @@ class User extends Authenticatable implements JWTSubject
     ];
     public function projects()
     {
-        return $this->belongsToMany(Project::class)->withPivot('role', 'contribution_hours', 'last_activity')->withTimestamps();
+        return $this->belongsToMany(Project::class)->withPivot('role', 'contribution_hours', 'start_time', 'last_activity')->withTimestamps();
     }
-
     public function tasks()
     {
-        return $this->hasMany(Task::class);
+        return $this->hasManyThrough(
+            Task::class,         // Final model (Tasks)
+            ProjectUser::class,  // Intermediate model (Pivot table)
+            'user_id',           // Foreign key on ProjectUser (user_id in pivot)
+            'project_id',        // Foreign key on Task (project_id in tasks table)
+            'id',                // Local key on User (user's id)
+            'project_id'         // Local key on ProjectUser (project's id in pivot)
+        );
     }
+
 
 
 
